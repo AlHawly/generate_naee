@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مؤسّسة الحولي — إنشاء نعي</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0b0a; --bg-alt:#141311; --card:#17150f;
+    --gold:#B78A45; --gold-soft:#D9BD86; --ivory:#EDE7DA; --muted:#9c948a;
+    --hairline:rgba(183,138,69,.28);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ivory);
+    font-family:'Jost',sans-serif; font-weight:300;
+    min-height:100vh; display:flex; flex-direction:column;
+  }
+  header{
+    padding:20px 28px; border-bottom:1px solid var(--hairline);
+  }
+  header h1{
+    font-family:'Amiri', serif; font-weight:700;
+    font-size:1.5rem; margin:0; color:var(--ivory);
+  }
+  header h1 span{ color:var(--gold); }
+  header p{ margin:6px 0 0; font-size:.82rem; color:var(--muted); }
+
+  .layout{ flex:1; display:flex; gap:0; flex-wrap:wrap; }
+  .panel{
+    flex:1 1 460px; padding:26px 28px; max-width:560px;
+    border-left:1px solid var(--hairline);
+  }
+  .preview-wrap{
+    flex:1 1 460px; padding:26px; background:var(--bg-alt);
+    display:flex; justify-content:center; overflow:auto;
+  }
+  .page-preview{
+    background:#f2ede2; color:#1a1a1a; width:100%; max-width:560px;
+    padding:6.21% 11.34% 9.66%; direction:rtl;
+    font-family:'Amiri', serif; font-size:1rem; line-height:1.9;
+    box-shadow:0 30px 70px rgba(0,0,0,.5); position:relative;
+    aspect-ratio: 210 / 297; overflow:visible;
+  }
+  #previewText{ position:relative; z-index:1; }
+  #photoBoxEl{
+    display:block; margin:0 auto 14px; text-align:center;
+  }
+  #photoBoxEl img{ max-width:100%; display:inline-block; border:1px solid #999; }
+  .page-preview .p-label{ font-weight:700; }
+  .page-preview .p-sub{ margin-right:22px; font-size:.94rem; }
+  .page-preview .p-name{ text-align:center; font-weight:700; font-size:1.5rem; margin:18px 0 4px; }
+  .page-preview .p-parent{ text-align:center; font-weight:700; margin-bottom:20px; }
+  .page-preview .p-body{ margin-bottom:0; }
+  .rel-table{ border-collapse:collapse; margin-bottom:0; width:100%; }
+  .rel-table td{ padding:0; vertical-align:top; text-align:right; }
+  .rel-table .rel-label{ font-weight:700; white-space:nowrap; padding-inline-end:8px; width:1%; }
+  .rel-table .rel-name{ text-align:right; }
+  .page-preview .hint-overlay{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.55); color:#D9BD86; font-family:'Jost',sans-serif;
+    text-align:center; padding:20px; font-size:.85rem; opacity:0; transition:.2s; pointer-events:none;
+  }
+
+  fieldset{ border:1px solid var(--hairline); border-radius:4px; padding:14px 16px; margin:0 0 18px; }
+  legend{ font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:var(--gold-soft); padding:0 6px; }
+  label{
+    display:block; font-size:.75rem; letter-spacing:.05em;
+    color:var(--gold-soft); margin:10px 0 6px;
+  }
+  label:first-of-type{ margin-top:0; }
+  input[type="text"], select, textarea{
+    width:100%; background:rgba(255,255,255,.03); border:1px solid var(--hairline);
+    color:var(--ivory); padding:9px 12px; font-family:'Jost',sans-serif; font-size:.9rem;
+    border-radius:3px; direction:rtl;
+  }
+  input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--gold); }
+  .row2{ display:flex; gap:10px; }
+  .row2 > *{ flex:1; }
+  .row3{ display:flex; gap:8px; }
+  .row3 > *{ flex:1; }
+
+  .section-block{ border:1px dashed var(--hairline); border-radius:4px; padding:12px; margin-bottom:12px; }
+  .section-block-head{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+  .section-block-head input{ flex:1; font-weight:600; }
+  .name-row{ display:flex; gap:6px; margin-bottom:6px; }
+  .name-row input{ flex:1; }
+  .icon-btn{
+    background:none; border:1px solid var(--hairline); color:var(--muted);
+    width:32px; height:32px; border-radius:3px; cursor:pointer; flex-shrink:0;
+    font-size:1rem; line-height:1; transition:.2s;
+  }
+  .icon-btn:hover{ border-color:var(--gold); color:var(--gold-soft); }
+  .icon-btn.danger:hover{ border-color:#c0605a; color:#e08a85; }
+  .icon-btn:disabled{ opacity:.3; cursor:default; }
+  .icon-btn:disabled:hover{ border-color:var(--hairline); color:var(--muted); }
+  .add-line{
+    background:none; border:1px dashed var(--hairline); color:var(--gold-soft);
+    width:100%; padding:7px; border-radius:3px; cursor:pointer; font-size:.82rem; margin-top:2px;
+    font-family:'Jost',sans-serif;
+  }
+  .add-line:hover{ border-color:var(--gold); }
+  .add-section-btn{
+    width:100%; background:none; border:1px solid var(--gold); color:var(--gold-soft);
+    padding:10px; border-radius:3px; cursor:pointer; font-family:'Jost',sans-serif;
+    letter-spacing:.05em; font-size:.85rem; margin-bottom:18px;
+  }
+  .add-section-btn:hover{ background:rgba(183,138,69,.1); }
+
+  .checkbox-row{ display:flex; align-items:center; gap:8px; margin:14px 0; }
+  .checkbox-row input{ width:auto; }
+  .checkbox-row label{ margin:0; color:var(--ivory); font-size:.85rem; }
+  .hint{ font-size:.72rem; color:var(--muted); margin-top:5px; line-height:1.5; }
+
+  #downloadBtn{
+    width:100%; background:var(--gold); color:#100e0a; border:none;
+    padding:15px; font-family:'Jost',sans-serif; font-weight:500; letter-spacing:.08em;
+    font-size:.9rem; cursor:pointer; border-radius:3px; margin-top:10px;
+  }
+  #downloadBtn:hover{ background:var(--gold-soft); }
+  #status{ margin-top:10px; font-size:.8rem; color:var(--muted); min-height:1.2em; text-align:center; }
+
+  @media(max-width:920px){
+    .panel{ border-left:none; border-bottom:1px solid var(--hairline); max-width:none; order:2; }
+    .preview-wrap{ order:1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>مؤسّسة <span>الحولي</span> — إنشاء نعي</h1>
+  <p>املأ الحقول، وحمّل ملف Word جاهزًا للطباعة على ورقتكم الخاصّة.</p>
+</header>
+
+<div class="layout">
+  <div class="panel">
+
+    <fieldset>
+      <legend>المتوفّى</legend>
+      <label>الجنس (يضبط تلقائيًا صيغة النص بالكامل)</label>
+      <select id="deceasedGender">
+        <option value="male">رجل</option>
+        <option value="female">امرأة</option>
+      </select>
+    </fieldset>
+
+    <fieldset>
+      <legend>الصورة</legend>
+      <div class="checkbox-row">
+        <input type="checkbox" id="includePhoto">
+        <label for="includePhoto">إضافة صورة المتوفّى للنعي</label>
+      </div>
+      <div id="photoInputWrap" style="display:none;">
+        <label>اختر صورة</label>
+        <input type="file" id="photoFile" accept="image/png,image/jpeg">
+        <label>عرض الصورة (سم)</label>
+        <input type="text" id="photoWidthCm" value="4">
+        <div class="hint">الصورة تُدرج في المنتصف أعلى النعي بأمان تام، مهما كان عدد الأسماء أو طول النص.</div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>الشّعار / الآية في الأعلى</legend>
+      <div class="checkbox-row">
+        <input type="checkbox" id="includeSlogan" checked>
+        <label for="includeSlogan">إضافة سطر في أعلى النعي</label>
+      </div>
+      <div id="sloganInputWrap">
+        <label>النص</label>
+        <input type="text" id="sloganText" value="أنا القيامة والحق والحياة، من آمن بي وإن مات فسيحيا">
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>الرُّبى العائلية (زوجة/زوج، أشقّاء، أعمام، والدين، إلخ...)</legend>
+      <div class="hint" style="margin-bottom:10px;">أضف كل ما ينطبق كرُبية منفصلة — مثلًا لو المتوفّى طفل، احذف "زوجة الفقيد" وأضف "والده" و"والدته" هنا بدلًا منها.</div>
+      <div id="sectionsContainer"></div>
+      <button type="button" class="add-section-btn" id="addSectionBtn">+ إضافة رُبى جديدة (مثل الأصهار)</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>عموم العائلات</legend>
+      <label>قائمة العائلات (مفصولة بفاصلة)</label>
+      <input type="text" id="generalFamilies" placeholder="برجاس، شماطه، الحولي، الحاج بطرس...">
+    </fieldset>
+
+    <fieldset>
+      <legend>المتوفّى</legend>
+      <label>الاسم الكامل</label>
+      <input type="text" id="deceasedName" placeholder="جوزيف أسعد برجاس">
+      <div class="hint">أضف "والده" أو "والدته" (حيًا أو مرحومًا) كرُبية عادية في القائمة أعلاه، مثل باقي الأقارب.</div>
+    </fieldset>
+
+    <fieldset>
+      <legend>صلاة/خدمة الراحة</legend>
+      <div class="checkbox-row">
+        <input type="checkbox" id="includePrayer" checked>
+        <label for="includePrayer">تُقام خدمة/صلاة (بعض العائلات تكتفي بالدفن دون خدمة)</label>
+      </div>
+      <div id="prayerFieldsWrap">
+        <div class="row3">
+          <div><label>يوم الوفاة</label><input type="text" id="prayerDay" placeholder="الثلاثاء"></div>
+          <div><label>تاريخه</label><input type="text" id="prayerDate" placeholder="2026/4/7"></div>
+          <div><label>ساعة الخدمة</label><input type="text" id="prayerTime" placeholder="3:30"></div>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>الدفن</legend>
+      <div class="row3">
+        <div><label>اليوم</label><input type="text" id="burialDay" placeholder="الأربعاء"></div>
+        <div><label>التاريخ</label><input type="text" id="burialDate" placeholder="2026/4/8"></div>
+        <div><label>ساعة استقبال الجثمان</label><input type="text" id="receiveTime" placeholder="1"></div>
+      </div>
+      <div class="row2">
+        <div><label>اسم الكنيسة/المكان</label><input type="text" id="churchName" placeholder="كنيسة مار إميل"></div>
+        <div><label>البلدة</label><input type="text" id="churchLocation" placeholder="قب الياس"></div>
+      </div>
+      <div class="hint" style="margin-top:6px;">عدّل اسم الكنيسة والبلدة في كل مرّة — لا يوجد افتراضي ثابت.</div>
+      <label style="margin-top:14px;">نص الفقرة (يتكوّن تلقائيًا، ويمكنك تعديله وإضافة أسطر جديدة بحرّية — تبقى دائمًا في المنتصف)</label>
+      <textarea id="burialParagraphText" rows="4" style="white-space:pre-wrap;"></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend>التّعازي</legend>
+      <div class="checkbox-row">
+        <input type="checkbox" id="includeCondolences" checked>
+        <label for="includeCondolences">تُقبل التّعازي (بعض العائلات لا تحدّد فترة تعازي)</label>
+      </div>
+      <div id="condFieldsWrap">
+        <div class="row3">
+          <div><label>اليوم</label><input type="text" id="condDay" placeholder="الخميس"></div>
+          <div><label>التاريخ</label><input type="text" id="condDate" placeholder="2026/4/9"></div>
+        </div>
+        <div class="row2">
+          <div><label>من الساعة</label><input type="text" id="condFrom" placeholder="10 صباحًا"></div>
+          <div><label>لغاية الساعة</label><input type="text" id="condTo" placeholder="6 مساءً"></div>
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="wreathLine" checked>
+        <label for="wreathLine">إضافة سطر: الرجاء استبدال الأكاليل بالتبرّع للكنيسة</label>
+      </div>
+      <label style="margin-top:14px;">نص فقرة التّعازي (يتكوّن تلقائيًا، قابل للتعديل الحرّ — تبقى دائمًا في المنتصف)</label>
+      <textarea id="condParagraphText" rows="3" style="white-space:pre-wrap;"></textarea>
+    </fieldset>
+
+    <button id="downloadBtn">تحميل ملف Word</button>
+    <div id="status"></div>
+  </div>
+
+  <div class="preview-wrap">
+    <div class="page-preview" id="previewPage">
+      <div id="previewText"></div>
+    </div>
+    <div id="fitIndicator" style="margin-top:10px; font-size:.78rem; color:var(--muted); text-align:center;"></div>
+  </div>
+</div>
+
+<script>
+// ---------------- gender-aware phrasing ----------------
+const GENDER_TEXT = {
+  male: {
+    raqid: 'الرّاقد', mutamm: 'متمّمًا', wajibat: 'واجباته',
+    linafsihi: 'لنفسه', badahu: 'بعده', faqid: 'فقيدهم الغالي المرحوم',
+  },
+  female: {
+    raqid: 'الرّاقدة', mutamm: 'متمّمةً', wajibat: 'واجباتها',
+    linafsihi: 'لنفسها', badahu: 'بعدها', faqid: 'فقيدتهم الغالية المرحومة',
+  }
+};
+
+document.getElementById('deceasedGender').addEventListener('change', (e) => {
+  const g = GENDER_TEXT[e.target.value];
+  renderPreview();
+});
+
+document.getElementById('includePrayer').addEventListener('change', (e) => {
+  document.getElementById('prayerFieldsWrap').style.display = e.target.checked ? 'block' : 'none';
+  renderPreview();
+});
+document.getElementById('includeCondolences').addEventListener('change', (e) => {
+  document.getElementById('condFieldsWrap').style.display = e.target.checked ? 'block' : 'none';
+  renderPreview();
+});
+
+// ---------------- auto-composed but freely editable paragraphs ----------------
+
+
+let burialDirty = false, condDirty = false;
+document.getElementById('burialParagraphText').addEventListener('input', () => { burialDirty = true; renderPreview(); });
+document.getElementById('condParagraphText').addEventListener('input', () => { condDirty = true; renderPreview(); });
+
+function composeBurialText(){
+  const g = GENDER_TEXT[document.getElementById('deceasedGender').value];
+  if(document.getElementById('includePrayer').checked){
+    return `${g.raqid} على رجاء القيامة المجيدة يوم ${val('prayerDay')} الواقع ${val('prayerDate')} ${g.mutamm} ${g.wajibat} الدينيّة. يحتفل بالصلاة لراحة نفسه في تمام الساعة ${val('prayerTime')} بعد ظهر يوم ${val('burialDay')} الواقع ${val('burialDate')} في ${val('churchName')} – ${val('churchLocation')} (يُستقبل الجثمان الساعة ${val('receiveTime')} ظهرًا) ${g.linafsihi} الرّاحة ولكم ${g.badahu} طول البقاء.`;
+  }
+  return `${g.raqid} على رجاء القيامة المجيدة، يُوارى الثّرى يوم ${val('burialDay')} الواقع ${val('burialDate')} في ${val('churchName')} – ${val('churchLocation')} (يُستقبل الجثمان الساعة ${val('receiveTime')} ظهرًا) ${g.linafsihi} الرّاحة ولكم ${g.badahu} طول البقاء.`;
+}
+function composeCondText(){
+  return `تُقبل التّعازي قبل الدّفن وبعده، ويوم ${val('condDay')} الواقع ${val('condDate')} في صالون الكنيسة من السّاعة ${val('condFrom')} لغاية السّاعة ${val('condTo')}.`;
+}
+function refreshComposedTexts(){
+  if(!burialDirty) document.getElementById('burialParagraphText').value = composeBurialText();
+  if(!condDirty) document.getElementById('condParagraphText').value = composeCondText();
+}
+['deceasedGender','includePrayer','prayerDay','prayerDate','prayerTime','burialDay','burialDate','receiveTime','churchName','churchLocation']
+  .forEach(id => document.getElementById(id).addEventListener('input', () => { refreshComposedTexts(); renderPreview(); }));
+document.getElementById('includePrayer').addEventListener('change', () => { refreshComposedTexts(); renderPreview(); });
+['condDay','condDate','condFrom','condTo'].forEach(id => document.getElementById(id).addEventListener('input', () => { refreshComposedTexts(); renderPreview(); }));
+
+function nlToBr(text){
+  return esc(text).split('\n').map(l=>l).join('<w:br/>');
+}
+function textToRunsWithBreaks(text, opts={}){
+  // splits on \n and inserts <w:br/> between lines, all within runs sharing the same formatting
+  const parts = text.split('\n');
+  return parts.map((line,i) => {
+    const r = run(line, opts);
+    return i < parts.length - 1 ? r.replace('</w:r>', '') + '<w:br/></w:r>' : r;
+  }).join('');
+}
+
+document.getElementById('includePhoto').addEventListener('change', (e) => {
+  document.getElementById('photoInputWrap').style.display = e.target.checked ? 'block' : 'none';
+  renderPreview();
+});
+document.getElementById('includeSlogan').addEventListener('change', (e) => {
+  document.getElementById('sloganInputWrap').style.display = e.target.checked ? 'block' : 'none';
+  renderPreview();
+});
+document.getElementById('sloganText').addEventListener('input', renderPreview);
+let photoData = null; // { bytes: ArrayBuffer, ext: 'png'|'jpeg', naturalW, naturalH }
+
+document.getElementById('photoFile').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if(!file){ photoData = null; renderPreview(); return; }
+  const buf = await file.arrayBuffer();
+  const ext = file.type === 'image/png' ? 'png' : 'jpeg';
+  const blobUrl = URL.createObjectURL(new Blob([buf]));
+  const img = new Image();
+  img.onload = () => {
+    photoData = { bytes: buf, ext, naturalW: img.naturalWidth, naturalH: img.naturalHeight };
+    renderPreview();
+  };
+  img.src = blobUrl;
+});
+document.getElementById('photoWidthCm').addEventListener('input', renderPreview);
+
+// ---------------- state ----------------
+let sections = [
+  { title: 'والدته المرحومة', names: [''] },
+  { title: 'زوجة الفقيد', names: [''] },
+  { title: 'أشقّاؤه', names: [''] },
+  { title: 'أعمامه', names: [''] },
+  { title: 'عمّاته', names: [''] },
+  { title: 'أخواله', names: [''] },
+];
+
+const sectionsContainer = document.getElementById('sectionsContainer');
+
+function renderSections(){
+  sectionsContainer.innerHTML = '';
+  sections.forEach((sec, sIdx) => {
+    const block = document.createElement('div');
+    block.className = 'section-block';
+
+    const head = document.createElement('div');
+    head.className = 'section-block-head';
+    const titleInput = document.createElement('input');
+    titleInput.type = 'text';
+    titleInput.value = sec.title;
+    titleInput.placeholder = 'عنوان الرُّبى (مثل: الأصهار)';
+    titleInput.addEventListener('input', e => { sec.title = e.target.value; renderPreview(); });
+
+    const upBtn = document.createElement('button');
+    upBtn.type = 'button';
+    upBtn.className = 'icon-btn';
+    upBtn.title = 'نقل هذه الرُّبى للأعلى';
+    upBtn.textContent = '↑';
+    upBtn.disabled = sIdx === 0;
+    upBtn.addEventListener('click', () => {
+      if(sIdx === 0) return;
+      [sections[sIdx-1], sections[sIdx]] = [sections[sIdx], sections[sIdx-1]];
+      renderSections(); renderPreview();
+    });
+
+    const downBtn = document.createElement('button');
+    downBtn.type = 'button';
+    downBtn.className = 'icon-btn';
+    downBtn.title = 'نقل هذه الرُّبى للأسفل';
+    downBtn.textContent = '↓';
+    downBtn.disabled = sIdx === sections.length - 1;
+    downBtn.addEventListener('click', () => {
+      if(sIdx === sections.length - 1) return;
+      [sections[sIdx+1], sections[sIdx]] = [sections[sIdx], sections[sIdx+1]];
+      renderSections(); renderPreview();
+    });
+
+    const removeSecBtn = document.createElement('button');
+    removeSecBtn.type = 'button';
+    removeSecBtn.className = 'icon-btn danger';
+    removeSecBtn.title = 'حذف هذه الرُّبى بالكامل';
+    removeSecBtn.textContent = '✕';
+    removeSecBtn.addEventListener('click', () => { sections.splice(sIdx,1); renderSections(); renderPreview(); });
+    head.appendChild(titleInput);
+    head.appendChild(upBtn);
+    head.appendChild(downBtn);
+    head.appendChild(removeSecBtn);
+    block.appendChild(head);
+
+    sec.names.forEach((name, nIdx) => {
+      const row = document.createElement('div');
+      row.className = 'name-row';
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.value = name;
+      inp.placeholder = 'اسم العائلة أو الشخص';
+      inp.addEventListener('input', e => { sec.names[nIdx] = e.target.value; renderPreview(); });
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'icon-btn';
+      rm.textContent = '−';
+      rm.title = 'حذف هذا السطر';
+      rm.addEventListener('click', () => { sec.names.splice(nIdx,1); if(sec.names.length===0) sec.names.push(''); renderSections(); renderPreview(); });
+      row.appendChild(inp);
+      row.appendChild(rm);
+      block.appendChild(row);
+    });
+
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'add-line';
+    addBtn.textContent = '+ إضافة اسم';
+    addBtn.addEventListener('click', () => { sec.names.push(''); renderSections(); renderPreview(); });
+    block.appendChild(addBtn);
+
+    sectionsContainer.appendChild(block);
+  });
+}
+
+document.getElementById('addSectionBtn').addEventListener('click', () => {
+  sections.push({ title: '', names: [''] });
+  renderSections();
+  renderPreview();
+});
+
+// ---------------- live preview ----------------
+const fieldIds = ['generalFamilies','deceasedName',
+  'prayerDay','prayerDate','prayerTime','burialDay','burialDate','receiveTime','churchName','churchLocation',
+  'condDay','condDate','condFrom','condTo'];
+fieldIds.forEach(id => document.getElementById(id).addEventListener('input', renderPreview));
+document.getElementById('wreathLine').addEventListener('change', renderPreview);
+
+function val(id){ return document.getElementById(id).value.trim(); }
+function ph(id){ return document.getElementById(id).placeholder || ''; }
+// preview: show a muted placeholder (no brackets) when empty, purely visual
+function getOr(id){ const v = val(id); return v ? v : ph(id); }
+// docx: never show placeholder text or brackets — just leave blank if not filled
+function orField(id){ return val(id); }
+
+// ---------------- auto-fit: shrink text so everything stays on the one printed page ----------------
+const FIT_TIERS = [
+  // Baseline: title (slogan) 22pt, closing paragraphs 24pt, relation/family names 16pt,
+  // deceased's name 36pt. rowScale never drops below 0.85 — any tighter and a line's own row
+  // becomes shorter than the font's natural height, causing visual overlap.
+  { max: 12,  titleSize:44, body:48, rel:36, name:72, parent:36, tableRowGap:40, gapScale:1.00, rowScale:1.00, pTitleSize:29, pBody:32,   pRel:23.5, pName:47.5, pParent:23.5 },
+  { max: 18,  titleSize:44, body:48, rel:36, name:72, parent:36, tableRowGap:40, gapScale:1.00, rowScale:0.85, pTitleSize:29, pBody:32,   pRel:23.5, pName:47.5, pParent:23.5 },
+  // Stage 2: space between names is already at its safe minimum — shrink the space BETWEEN sections/blocks. Font still stays full.
+  { max: 24,  titleSize:44, body:48, rel:36, name:72, parent:36, tableRowGap:20, gapScale:0.40, rowScale:0.85, pTitleSize:29, pBody:32,   pRel:23.5, pName:47.5, pParent:23.5 },
+  { max: 30,  titleSize:44, body:48, rel:36, name:72, parent:36, tableRowGap:8,  gapScale:0.08, rowScale:0.85, pTitleSize:29, pBody:32,   pRel:23.5, pName:47.5, pParent:23.5 },
+  // Stage 3: spacing is already at its safe tightest — now the TITLE and the DECEASED'S NAME shrink together first, 2pt at a time. Names and closing paragraph stay full.
+  { max: 36,  titleSize:40, body:48, rel:36, name:68, parent:36, tableRowGap:8,  gapScale:0.08, rowScale:0.85, pTitleSize:26.5, pBody:32, pRel:23.5, pName:45,   pParent:23.5 },
+  { max: 42,  titleSize:36, body:48, rel:36, name:64, parent:36, tableRowGap:8,  gapScale:0.08, rowScale:0.85, pTitleSize:24,   pBody:32, pRel:23.5, pName:42,   pParent:23.5 },
+  { max: 48,  titleSize:32, body:48, rel:36, name:60, parent:36, tableRowGap:8,  gapScale:0.08, rowScale:0.85, pTitleSize:21,   pBody:32, pRel:23.5, pName:40,   pParent:23.5 },
+  // Stage 4: title + name are at their floor. Relation/family names drop just ONE point, to
+  // their own floor of 15pt, and stay there — never smaller, per instruction. From here on,
+  // only the CLOSING paragraph keeps shrinking (2pt at a time) to handle denser cases.
+  { max: 56,  titleSize:32, body:44, rel:30, name:60, parent:30, tableRowGap:8,  gapScale:0.08, rowScale:0.85, pTitleSize:21,   pBody:29,   pRel:20,   pName:40,   pParent:20 },
+  { max: 68,  titleSize:32, body:40, rel:30, name:60, parent:30, tableRowGap:8,  gapScale:0.08, rowScale:0.85, pTitleSize:21,   pBody:26.5, pRel:20,   pName:40,   pParent:20 },
+  { max: 80,  titleSize:32, body:36, rel:30, name:60, parent:30, tableRowGap:8,  gapScale:0.08, rowScale:0.85, pTitleSize:21,   pBody:24,   pRel:20,   pName:40,   pParent:20 },
+  { max: 92,  titleSize:32, body:32, rel:30, name:60, parent:30, tableRowGap:8,  gapScale:0.08, rowScale:0.85, pTitleSize:21,   pBody:21,   pRel:20,   pName:40,   pParent:20 },
+  { max: 104, titleSize:32, body:28, rel:30, name:60, parent:30, tableRowGap:8,  gapScale:0.08, rowScale:0.85, pTitleSize:21,   pBody:18.5, pRel:20,   pName:40,   pParent:20 },
+  { max: Infinity, titleSize:32, body:24, rel:30, name:60, parent:30, tableRowGap:8, gapScale:0.08, rowScale:0.85, pTitleSize:21, pBody:16, pRel:20, pName:40, pParent:20 },
+];
+
+let chosenTier = FIT_TIERS[0];
+
+const AVAILABLE_TWIPS = 16838 - 740 - 1150; // page height minus top/bottom margins = 14948
+
+function charsPerLineTable(relSize){ return Math.round(60 * 24 / relSize); }
+function charsPerLinePage(bodySize){ return Math.round(78 * 24 / bodySize); }
+
+function estimateSectionTwips(names, tier){
+  const rowH = Math.round(tier.rel * 14 * (tier.rowScale || 1));
+  const cpl = charsPerLineTable(tier.rel);
+  let h = 0;
+  names.forEach(name => {
+    const lines = Math.max(1, Math.ceil(name.length / cpl));
+    h += rowH * lines;
+  });
+  return h + tier.tableRowGap;
+}
+
+function estimateParaTwips(text, size, baseSpacing, tier, isTable){
+  const cpl = charsPerLinePage(size);
+  let lines = 0;
+  String(text || '').split('\n').forEach(seg => { lines += Math.max(1, Math.ceil(seg.length / cpl)); });
+  lines = Math.max(1, lines);
+  return lh(size) * lines + Math.round(baseSpacing * tier.gapScale);
+}
+
+// Computes, purely from field values (no DOM measurement), the predicted content height for a tier,
+// in the SAME units (twips) used by the actual Word document — so preview and export always agree.
+function estimateHeightTwips(tier){
+  const g = GENDER_TEXT[document.getElementById('deceasedGender').value];
+  let h = 0;
+  let gapSlots = 0;
+  let sectionGapSlots = 0; // just the relation-section-to-section gaps (frères/sœurs/etc.)
+
+  if(document.getElementById('includeSlogan').checked){
+    const s = val('sloganText') || document.getElementById('sloganText').placeholder;
+    h += estimateParaTwips(s, tier.titleSize, 60, tier) + 220;
+    gapSlots++;
+  }
+  // Photo floats at a fixed spot (see buildDocumentXml) and never affects the text flow,
+  // so it contributes nothing to the height estimate.
+  sections.forEach(sec => {
+    const names = sec.names.filter(x=>x);
+    if(names.length === 0) return;
+    h += estimateSectionTwips(names, tier);
+    gapSlots++;
+    sectionGapSlots++;
+  });
+  const gfCombinedEst = val('generalFamilies') + ' وأنسباؤهم في الوطن والمهجر ينعون إليكم بمزيد من الإيمان والرجاء ' + g.faqid;
+  h += estimateSectionTwips([gfCombinedEst], tier) + Math.round(200 * tier.gapScale);
+  gapSlots++;
+
+  h += estimateParaTwips(val('deceasedName') || 'X', tier.name, 220, tier);
+  gapSlots++;
+
+  const burialText = val('burialParagraphText') || composeBurialText();
+  h += estimateParaTwips(burialText, tier.body, 160, tier);
+  gapSlots++;
+
+  if(document.getElementById('includeCondolences').checked){
+    const condText = val('condParagraphText') || composeCondText();
+    h += estimateParaTwips(condText, tier.body, 160, tier);
+    gapSlots++;
+  }
+  if(document.getElementById('wreathLine').checked){
+    h += lh(tier.body);
+  }
+
+  return { height: h, gapSlots: Math.max(1, gapSlots - 1), sectionGapSlots: Math.max(1, sectionGapSlots) };
+}
+
+// Picks the least-compressed tier whose predicted height still fits the page, then works out
+// how much extra breathing room to spread across the gaps so the last line still reaches
+// the bottom margin. Pure calculation — no browser measurement — so preview and Word always match.
+function computeChosenTier(){
+  for(const tier of FIT_TIERS){
+    const { height, gapSlots } = estimateHeightTwips(tier);
+    const safeHeight = Math.round(height * 1.04); // smaller cushion: writing stays bigger longer, tiny added risk
+    if(safeHeight <= AVAILABLE_TWIPS){
+      // Spare room spread evenly across every gap between blocks — the way that worked well
+      // before. Provably safe: total spent never exceeds the spare room above the safety margin.
+      const perGap = Math.max(0, (AVAILABLE_TWIPS - safeHeight) / Math.max(1, gapSlots));
+      const g = Math.round(perGap);
+      return { ...tier, nameGapTwips: g, sectionGapTwips: g, extraGapTwips: g, spacerTwips: 0 };
+    }
+  }
+  const last = FIT_TIERS[FIT_TIERS.length - 1];
+  return { ...last, nameGapTwips: 0, sectionGapTwips: 0, extraGapTwips: 0, spacerTwips: 0 };
+}
+
+function buildPreviewHtml(tier){
+  const g = GENDER_TEXT[document.getElementById('deceasedGender').value];
+  const baseGapPx = tier.gapScale >= 0.9 ? 14 : tier.gapScale >= 0.3 ? 9 : 5;
+  const sectionGapPx = Math.max(2, (tier.sectionGapTwips || 0) / 15 + baseGapPx);
+  const nameGapPx = Math.max(2, (tier.nameGapTwips || 0) / 15 + baseGapPx);
+  const blockStyle = `margin-bottom:${sectionGapPx}px;`; // between relation sections
+  const nameFlankStyle = `margin-bottom:${nameGapPx}px;`; // families→name and name→closing paragraph
+  const tightStyle = `margin-bottom:${baseGapPx}px;`; // everything else stays close together
+  let html = '';
+
+  if(document.getElementById('includeSlogan').checked){
+    const s = val('sloganText') || document.getElementById('sloganText').placeholder;
+    html += `<div class="p-body" style="margin-bottom:${(parseFloat(blockStyle.match(/[\d.]+/)[0]) + 10)}px;text-align:center;font-weight:700;font-size:${tier.pTitleSize}px;">"${s}"</div>`;
+  }
+
+  const showPhoto = document.getElementById('includePhoto').checked && photoData;
+  if(showPhoto){
+    const widthCm = parseFloat(val('photoWidthCm')) || 4;
+    const pageWidthCm = 21;
+    const widthPct = (widthCm / pageWidthCm) * 100;
+    const src = URL.createObjectURL(new Blob([photoData.bytes]));
+    html += `<img src="${src}" style="position:absolute; left:0; top:90px; width:${widthPct}%; border:1px solid #999; z-index:0;">`;
+  }
+
+  sections.forEach(sec => {
+    if(!sec.title && sec.names.every(n=>!n)) return;
+    const names = sec.names.filter(n=>n);
+    if(names.length === 0) return;
+    html += `<table class="rel-table" style="${blockStyle}font-size:${tier.pRel}px;line-height:${(1.4*(tier.rowScale||1)).toFixed(2)};"><tbody>`;
+    html += `<tr><td class="rel-label">${sec.title || ''}:</td><td class="rel-name">${names[0]}</td></tr>`;
+    for(let i=1;i<names.length;i++){
+      html += `<tr><td></td><td class="rel-name">${names[i]}</td></tr>`;
+    }
+    html += `</tbody></table>`;
+  });
+
+  {
+    const gfCombined = getOr('generalFamilies') + ' وأنسباؤهم في الوطن والمهجر ينعون إليكم بمزيد من الإيمان والرجاء ' + g.faqid;
+    html += `<table class="rel-table" style="${nameFlankStyle}font-size:${tier.pRel}px;line-height:${(1.4*(tier.rowScale||1)).toFixed(2)};"><tbody><tr><td class="rel-label">وعموم عائلات:</td><td class="rel-name">${gfCombined}</td></tr></tbody></table>`;
+  }
+
+  html += `<div class="p-name" style="${nameFlankStyle}font-size:${tier.pName}px;">${getOr('deceasedName')}</div>`;
+
+  const burialText = val('burialParagraphText') || composeBurialText();
+  html += `<div class="p-body" style="${tightStyle}white-space:pre-wrap; text-align:center; font-size:${tier.pBody}px;">${esc(burialText)}</div>`;
+
+  if(document.getElementById('includeCondolences').checked){
+    const condText = val('condParagraphText') || composeCondText();
+    html += `<div class="p-body" style="${tightStyle}white-space:pre-wrap; text-align:center; font-size:${tier.pBody}px;">${esc(condText)}</div>`;
+  }
+
+  if(document.getElementById('wreathLine').checked){
+    html += `<div class="p-body" style="font-weight:700; text-align:center; font-size:${tier.pBody}px;">الرجاء استبدال الأكاليل بالتبرّع للكنيسة.</div>`;
+  }
+
+  return html;
+}
+
+function renderPreview(){
+  const p = document.getElementById('previewText');
+  chosenTier = computeChosenTier();
+  p.innerHTML = buildPreviewHtml(chosenTier);
+
+  const tierIndex = FIT_TIERS.findIndex(t => t.body === chosenTier.body && t.rel === chosenTier.rel && t.gapScale === chosenTier.gapScale);
+  const labels = ['الحجم الطبيعي', 'مصغّر قليلًا', 'مصغّر', 'مصغّر كثيرًا', 'أصغر حجم ممكن'];
+  document.getElementById('fitIndicator').textContent =
+    tierIndex <= 0 ? '' : `تم تصغير المسافات/الخط تلقائيًا ليبقى كل شيء داخل الصفحة (${labels[tierIndex] || labels[labels.length-1]})`;
+}
+
+// ---------------- DOCX generation ----------------
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function run(text, {bold=false, size=24}={}){
+  return `<w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:rtl/>${bold?'<w:b/><w:bCs/>':''}<w:sz w:val="${size}"/><w:szCs w:val="${size}"/></w:rPr><w:t xml:space="preserve">${esc(text)}</w:t></w:r>`;
+}
+
+function para(runsXml, {align='right', spacingAfter=100, indentRight=0, markSize=null, lineHeight=null, lineRule='atLeast'}={}){
+  const jc = align === 'center' ? 'center' : (align === 'left' ? 'left' : 'right');
+  const ind = indentRight ? `<w:ind w:right="${indentRight}"/>` : '';
+  const markRpr = markSize ? `<w:rPr><w:rtl/><w:sz w:val="${markSize}"/><w:szCs w:val="${markSize}"/></w:rPr>` : '';
+  const spacing = lineHeight
+    ? `<w:spacing w:before="0" w:after="${spacingAfter}" w:line="${lineHeight}" w:lineRule="${lineRule}"/>`
+    : `<w:spacing w:before="0" w:after="${spacingAfter}" w:line="240" w:lineRule="auto"/>`;
+  return `<w:p><w:pPr><w:bidi/><w:jc w:val="${jc}"/>${ind}${spacing}${markRpr}</w:pPr>${runsXml}</w:p>`;
+}
+function lh(size){ return Math.round(size * 12); } // tight-but-safe single-line height in twips (atLeast) for plain paragraphs
+// Decide exact (compact, single line) vs atLeast (safe, allows wrapping) height for a paragraph,
+// based on how many lines the given text is expected to need at this font size and page width.
+function fitLine(text, size, charsPerLineAt24 = 65){
+  const charsPerLine = Math.round(charsPerLineAt24 * 24 / size);
+  let lines = 0;
+  (text || '').split('\n').forEach(seg => { lines += Math.max(1, Math.ceil(seg.length / charsPerLine)); });
+  lines = Math.max(1, lines);
+  const rowH = lh(size);
+  return lines <= 1
+    ? { lineHeight: rowH, lineRule: 'exact' }
+    : { lineHeight: rowH * lines, lineRule: 'atLeast' };
+}
+
+function relationTable(label, names, tier, extraGap){
+  const labelW = 2500, nameW = 6250;
+  const rowGapExtra = extraGap || 0;
+  const cellNoBorder = `<w:tcBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/></w:tcBorders>`;
+  const cellNoMar = `<w:tcMar><w:top w:w="0" w:type="dxa"/><w:bottom w:w="0" w:type="dxa"/></w:tcMar>`;
+  const rowH = Math.round(tier.rel * 14 * (tier.rowScale || 1)); // exact single-line row height in twips, shrinks only in stage 2
+  const charsPerLine = Math.round(60 * 24 / tier.rel); // calibrated against real rendering: ~68 chars safely fit on one line at size 23 in this column
+  const markRpr = `<w:rPr><w:rtl/><w:sz w:val="${tier.rel}"/><w:szCs w:val="${tier.rel}"/></w:rPr>`;
+  function trPrFor(text){
+    const neededLines = Math.max(1, Math.ceil((text || '').length / charsPerLine));
+    return neededLines <= 1
+      ? `<w:trPr><w:trHeight w:val="${rowH}" w:hRule="exact"/></w:trPr>`
+      : `<w:trPr><w:trHeight w:val="${rowH * neededLines}" w:hRule="atLeast"/></w:trPr>`;
+  }
+  function cell(content, width){
+    return `<w:tc><w:tcPr><w:tcW w:w="${width}" w:type="dxa"/>${cellNoBorder}${cellNoMar}<w:vAlign w:val="top"/></w:tcPr><w:p><w:pPr><w:jc w:val="right"/><w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>${markRpr}</w:pPr>${content}</w:p></w:tc>`;
+  }
+  let rows = `<w:tr>${trPrFor(label+names[0])}${cell(run(label + '：', {bold:true, size:tier.rel}), labelW)}${cell(run(names[0], {size:tier.rel}), nameW)}</w:tr>`;
+  for(let i=1;i<names.length;i++){
+    rows += `<w:tr>${trPrFor(names[i])}${cell('', labelW)}${cell(run(names[i], {size:tier.rel}), nameW)}</w:tr>`;
+  }
+  return `<w:tbl><w:tblPr><w:tblW w:w="${labelW+nameW}" w:type="dxa"/><w:bidiVisual/><w:tblLayout w:type="fixed"/><w:tblBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/><w:insideH w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders><w:tblCellMar><w:top w:w="0" w:type="dxa"/><w:bottom w:w="0" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="${labelW}"/><w:gridCol w:w="${nameW}"/></w:tblGrid>${rows}</w:tbl><w:p><w:pPr><w:spacing w:before="0" w:after="${tier.tableRowGap + rowGapExtra}" w:line="20" w:lineRule="atLeast"/><w:rPr><w:sz w:val="2"/><w:szCs w:val="2"/></w:rPr></w:pPr></w:p>`;
+}
+
+function buildDocumentXml(imageRelId){
+  const g = GENDER_TEXT[document.getElementById('deceasedGender').value];
+  const tier = chosenTier; // exact same tier that was measured to fit in the live preview
+  const sp = (n) => Math.round(n * tier.gapScale);
+  let body = '';
+
+  if(document.getElementById('includeSlogan').checked){
+    const s = val('sloganText') || document.getElementById('sloganText').placeholder;
+    body += para(run('"' + s + '"', {bold:true, size:tier.titleSize}), {align:'center', spacingAfter:sp(60) + 220 + tier.nameGapTwips, markSize:tier.titleSize, lineHeight: lh(tier.titleSize)});
+  }
+
+  if(imageRelId){
+    // Floats at a fixed spot on the left, anchored to the page. wrapSquare (not wrapNone) is
+    // what makes Word/LibreOffice actually respect the given position — confirmed by testing —
+    // and since the text is right-aligned and the photo sits at the left margin, the text
+    // renders at its normal position, unaffected, exactly as if the photo were not there.
+    const widthCm = parseFloat(val('photoWidthCm')) || 4;
+    const cx = Math.round(widthCm * 360000);
+    const cy = Math.round(cx * (photoData.naturalH / photoData.naturalW));
+    const photoX = 1350; // left margin
+    const photoY = 740 + 1300; // starts below the slogan, alongside the relation-name rows
+    const photoAnchor = `<w:r><w:drawing>
+      <wp:anchor distT="0" distB="0" distL="0" distR="180000" simplePos="0" relativeHeight="1" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">
+        <wp:simplePos x="0" y="0"/>
+        <wp:positionH relativeFrom="page"><wp:posOffset>${photoX}</wp:posOffset></wp:positionH>
+        <wp:positionV relativeFrom="page"><wp:posOffset>${photoY}</wp:posOffset></wp:positionV>
+        <wp:extent cx="${cx}" cy="${cy}"/>
+        <wp:wrapSquare wrapText="right"/>
+        <wp:docPr id="1" name="Picture 1"/>
+        <wp:cNvGraphicFramePr/>
+        <a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+          <pic:pic>
+            <pic:nvPicPr><pic:cNvPr id="1" name="Picture 1"/><pic:cNvPicPr/></pic:nvPicPr>
+            <pic:blipFill><a:blip r:embed="${imageRelId}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>
+            <pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>
+          </pic:pic>
+        </a:graphicData></a:graphic>
+      </wp:anchor>
+    </w:drawing></w:r>`;
+    // Zero-footprint paragraph: holds the anchor without adding any visible row to the flow.
+    body += `<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="1" w:lineRule="exact"/><w:rPr><w:sz w:val="2"/><w:szCs w:val="2"/></w:rPr></w:pPr>${photoAnchor}</w:p>`;
+  }
+
+  sections.forEach(sec => {
+    if(!sec.title && sec.names.every(n=>!n)) return;
+    const names = sec.names.filter(n=>n);
+    if(names.length === 0) return;
+    body += relationTable(sec.title || '', names, tier, tier.sectionGapTwips);
+  });
+
+  {
+    const gfCombined = orField('generalFamilies') + ' وأنسباؤهم في الوطن والمهجر ينعون إليكم بمزيد من الإيمان والرجاء ' + g.faqid;
+    body += relationTable('وعموم عائلات', [gfCombined], tier, tier.nameGapTwips);
+  }
+
+  body += para(run(orField('deceasedName'), {bold:true, size:tier.name}), {align:'center', spacingAfter:sp(220) + tier.nameGapTwips, markSize:tier.name, lineHeight: lh(tier.name)});
+
+  const burialText = val('burialParagraphText') || composeBurialText();
+  body += para(textToRunsWithBreaks(burialText, {size:tier.body}), {align: 'center', spacingAfter:sp(160), markSize:tier.body, lineHeight: lh(tier.body)});
+
+  if(document.getElementById('includeCondolences').checked){
+    const condText = val('condParagraphText') || composeCondText();
+    body += para(textToRunsWithBreaks(condText, {size:tier.body}), {align: 'center', spacingAfter:sp(160), markSize:tier.body, lineHeight: lh(tier.body)});
+  }
+
+  if(document.getElementById('wreathLine').checked){
+    body += para(run('الرجاء استبدال الأكاليل بالتبرّع للكنيسة.', {bold:true, size:tier.body}), {align: 'center', spacingAfter:0, markSize:tier.body, lineHeight: lh(tier.body)});
+  }
+
+  const sectPr = `<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="740" w:right="1350" w:bottom="1150" w:left="1350" w:header="720" w:footer="720" w:gutter="0"/><w:bidi/></w:sectPr>`;
+
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+<w:body>${body}${sectPr}</w:body>
+</w:document>`;
+}
+
+function orField(id){
+  return val(id);
+}
+
+async function buildDocxBlob(){
+  const zip = new JSZip();
+  const usePhoto = document.getElementById('includePhoto').checked && photoData;
+  const imageRelId = usePhoto ? 'rIdImage1' : null;
+
+  const contentTypesExtra = usePhoto
+    ? `<Default Extension="${photoData.ext}" ContentType="image/${photoData.ext === 'png' ? 'png' : 'jpeg'}"/>`
+    : '';
+  zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+${contentTypesExtra}
+<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`);
+  zip.folder('_rels').file('.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`);
+  const word = zip.folder('word');
+  word.file('document.xml', buildDocumentXml(imageRelId));
+
+  let docRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`;
+  if(usePhoto){
+    word.folder('media').file(`image1.${photoData.ext}`, photoData.bytes);
+    docRels += `<Relationship Id="${imageRelId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image1.${photoData.ext}"/>`;
+  }
+  docRels += `</Relationships>`;
+  word.folder('_rels').file('document.xml.rels', docRels);
+
+  return await zip.generateAsync({
+    type: 'blob',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  });
+}
+
+let downloadsCap = null;
+(async () => {
+  try{
+    if(typeof claude !== 'undefined' && claude.use){
+      downloadsCap = await claude.use('downloads');
+    }
+  }catch(e){ downloadsCap = null; }
+})();
+
+document.getElementById('downloadBtn').addEventListener('click', async () => {
+  const status = document.getElementById('status');
+  status.textContent = 'جارٍ التحضير...';
+  try{
+    chosenTier = computeChosenTier(); // make sure the export uses the freshest values, same formula as the preview
+    const blob = await buildDocxBlob();
+    const filename = 'naee-' + (val('deceasedName') || 'model').replace(/\s+/g,'-') + '.docx';
+    if(downloadsCap){
+      try{
+        const result = await downloadsCap.save({filename, data: blob});
+        status.textContent = result.status === 'saved' ? 'تمّ الحفظ.' : 'تمّ الإرسال.';
+      }catch(err){
+        if(err && err.code === 'declined'){
+          status.textContent = 'تمّ إلغاء التحميل.';
+        } else {
+          fallbackDownload(blob, filename);
+          status.textContent = 'تمّ التحميل.';
+        }
+      }
+    } else {
+      fallbackDownload(blob, filename);
+      status.textContent = 'تمّ التحميل.';
+    }
+  }catch(e){
+    console.error(e);
+    status.textContent = 'حصل خطأ، حاول مجددًا.';
+  }
+});
+
+function fallbackDownload(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+
+renderSections();
+refreshComposedTexts();
+renderPreview();
+</script>
+</body>
+</html>
